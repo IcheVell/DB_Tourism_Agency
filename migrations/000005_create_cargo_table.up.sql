@@ -1,0 +1,32 @@
+-- CREATE TABLE financial_operations (
+--     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+--     amount NUMERIC(12, 2) NOT NULL,
+--     operation_at TIMESTAMPTZ NOT NULL,
+--     description non_empty_varchar_255,
+--     financial_category_id BIGINT NOT NULL,
+--     flight_id BIGINT,
+--     visa_id BIGINT,
+--     excursion_schedule_id BIGINT,
+--     excursion_booking_id BIGINT,
+--     cargo_shipment_id BIGINT,
+--     cargo_statement_id BIGINT,
+--     accomodation_id BIGINT,
+--
+--     CONSTRAINT fk_financial_operations_financial_category_id
+--         FOREIGN KEY (financial_category_id)
+--         REFERENCES financial_categories(id),
+--
+--     CONSTRAINT chk_financial_operations_amount
+--         CHECK (amount > 0)
+-- );
+--
+-- CREATE TABLE cargo_statements (
+--     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+--     status non_empty_varchar_255,
+--     cargo_shipment_id BIGINT,
+--
+--     CONSTRAINT chk_cargo_statements_status
+--         CHECK (status IN ('draft', 'weighed', 'packed', 'ready_for_shipment', 'shipped', 'cancelled'))
+-- );
+--
+-- CREATE TABLE cargo_shipments
