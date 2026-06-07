@@ -48,12 +48,12 @@ func (h *ReportHandler) AccommodationList(c echo.Context) error {
 func (h *ReportHandler) TouristCount(c echo.Context) error {
 	from, err := parseReportOptionalTime(c.QueryParam("from"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid from"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата начала должна быть в формате YYYY-MM-DD"})
 	}
 
 	to, err := parseReportOptionalTime(c.QueryParam("to"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid to"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата окончания должна быть в формате YYYY-MM-DD"})
 	}
 
 	categoryID := parseReportInt64Query(c, "category_id", 0)
@@ -69,7 +69,7 @@ func (h *ReportHandler) TouristCount(c echo.Context) error {
 func (h *ReportHandler) TouristInfo(c echo.Context) error {
 	touristID, err := parseReportInt64Param(c, "tourist_id")
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid tourist id"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Выберите туриста"})
 	}
 
 	report, err := h.reportService.TouristInfo(touristID)
@@ -83,12 +83,12 @@ func (h *ReportHandler) TouristInfo(c echo.Context) error {
 func (h *ReportHandler) HotelOccupancy(c echo.Context) error {
 	from, err := parseReportOptionalTime(c.QueryParam("from"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid from"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата начала должна быть в формате YYYY-MM-DD"})
 	}
 
 	to, err := parseReportOptionalTime(c.QueryParam("to"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid to"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата окончания должна быть в формате YYYY-MM-DD"})
 	}
 
 	items, err := h.reportService.HotelOccupancy(from, to)
@@ -102,12 +102,12 @@ func (h *ReportHandler) HotelOccupancy(c echo.Context) error {
 func (h *ReportHandler) ExcursionTouristCount(c echo.Context) error {
 	from, err := parseReportOptionalTime(c.QueryParam("from"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid from"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата начала должна быть в формате YYYY-MM-DD"})
 	}
 
 	to, err := parseReportOptionalTime(c.QueryParam("to"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid to"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата окончания должна быть в формате YYYY-MM-DD"})
 	}
 
 	report, err := h.reportService.ExcursionTouristCount(from, to)
@@ -121,12 +121,12 @@ func (h *ReportHandler) ExcursionTouristCount(c echo.Context) error {
 func (h *ReportHandler) ExcursionAnalytics(c echo.Context) error {
 	from, err := parseReportOptionalTime(c.QueryParam("from"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid from"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата начала должна быть в формате YYYY-MM-DD"})
 	}
 
 	to, err := parseReportOptionalTime(c.QueryParam("to"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid to"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата окончания должна быть в формате YYYY-MM-DD"})
 	}
 
 	report, err := h.reportService.ExcursionAnalytics(from, to)
@@ -151,12 +151,12 @@ func (h *ReportHandler) FlightLoad(c echo.Context) error {
 func (h *ReportHandler) WarehouseTurnover(c echo.Context) error {
 	from, err := parseReportOptionalTime(c.QueryParam("from"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid from"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата начала должна быть в формате YYYY-MM-DD"})
 	}
 
 	to, err := parseReportOptionalTime(c.QueryParam("to"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid to"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата окончания должна быть в формате YYYY-MM-DD"})
 	}
 
 	report, err := h.reportService.WarehouseTurnover(from, to)
@@ -182,12 +182,12 @@ func (h *ReportHandler) GroupFinancialReport(c echo.Context) error {
 func (h *ReportHandler) IncomeExpense(c echo.Context) error {
 	from, err := parseReportOptionalTime(c.QueryParam("from"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid from"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата начала должна быть в формате YYYY-MM-DD"})
 	}
 
 	to, err := parseReportOptionalTime(c.QueryParam("to"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid to"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата окончания должна быть в формате YYYY-MM-DD"})
 	}
 
 	items, err := h.reportService.IncomeExpense(from, to)
@@ -201,12 +201,12 @@ func (h *ReportHandler) IncomeExpense(c echo.Context) error {
 func (h *ReportHandler) CargoTypeShare(c echo.Context) error {
 	from, err := parseReportOptionalTime(c.QueryParam("from"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid from"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата начала должна быть в формате YYYY-MM-DD"})
 	}
 
 	to, err := parseReportOptionalTime(c.QueryParam("to"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid to"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата окончания должна быть в формате YYYY-MM-DD"})
 	}
 
 	items, err := h.reportService.CargoTypeShare(from, to)
@@ -220,12 +220,12 @@ func (h *ReportHandler) CargoTypeShare(c echo.Context) error {
 func (h *ReportHandler) Profitability(c echo.Context) error {
 	from, err := parseReportOptionalTime(c.QueryParam("from"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid from"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата начала должна быть в формате YYYY-MM-DD"})
 	}
 
 	to, err := parseReportOptionalTime(c.QueryParam("to"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid to"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата окончания должна быть в формате YYYY-MM-DD"})
 	}
 
 	report, err := h.reportService.Profitability(from, to)
@@ -239,12 +239,12 @@ func (h *ReportHandler) Profitability(c echo.Context) error {
 func (h *ReportHandler) TouristCategoryRatio(c echo.Context) error {
 	from, err := parseReportOptionalTime(c.QueryParam("from"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid from"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата начала должна быть в формате YYYY-MM-DD"})
 	}
 
 	to, err := parseReportOptionalTime(c.QueryParam("to"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid to"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата окончания должна быть в формате YYYY-MM-DD"})
 	}
 
 	restCategoryID := parseReportInt64Query(c, "rest_category_id", 0)
@@ -272,13 +272,13 @@ func (h *ReportHandler) FlightTourists(c echo.Context) error {
 func (h *ReportHandler) handleError(c echo.Context, err error) error {
 	switch {
 	case errors.Is(err, service.ErrInvalidInput):
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid input"})
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Проверьте параметры отчёта"})
 
 	case errors.Is(err, service.ErrReportTouristNotFound):
-		return c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: "tourist not found"})
+		return c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: "Турист не найден"})
 
 	case errors.Is(err, service.ErrReportFlightNotFound):
-		return c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: "flight not found"})
+		return c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: "Рейс не найден"})
 
 	default:
 		return c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: "internal server error"})

@@ -111,6 +111,11 @@ func (h *FlightHandler) writeFlightError(c echo.Context, err error) error {
 			"error": "flight not found",
 		})
 
+	case errors.Is(err, service.ErrFlightInvalidFlightNumber):
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "flight_number must be positive",
+		})
+
 	case errors.Is(err, service.ErrFlightInvalidCapacity):
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "capacity must be positive",

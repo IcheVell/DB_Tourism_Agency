@@ -15,10 +15,13 @@ var (
 	ErrMeDocumentNotFound       = errors.New("identity document not found")
 	ErrMeDocumentAlreadyExists  = errors.New("identity document already exists")
 	ErrMeDocumentRequired       = errors.New("identity document required")
+	ErrMeInvalidDocumentDates   = errors.New("identity document dates are invalid")
 	ErrMeGroupMemberNotFound    = errors.New("group member not found")
 	ErrMeMultipleGroupMembers   = errors.New("multiple group members found")
 	ErrMeScheduleNotFound       = errors.New("excursion schedule not found")
 	ErrMeExcursionAlreadyBooked = errors.New("excursion already booked")
+	ErrMeCargoTypeNotFound      = errors.New("cargo type not found")
+	ErrMeHotelNotFound          = errors.New("hotel not found")
 )
 
 type MeService struct {
@@ -29,6 +32,72 @@ func NewMeService(meRepository *repository.MeRepository) *MeService {
 	return &MeService{
 		meRepository: meRepository,
 	}
+}
+
+func (s *MeService) TravelRequest(userID int64) (*dto.MeTravelRequestResponse, error) {
+	if userID <= 0 {
+		return nil, ErrInvalidInput
+	}
+
+	if err := s.ensureTouristLinked(userID); err != nil {
+		return nil, err
+	}
+
+	request, err := s.meRepository.FindTravelRequestByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if request == nil {
+		return nil, ErrMeTouristNotLinked
+	}
+
+	return request, nil
+}
+
+func (s *MeService) UpdateTravelRequest(userID int64, request dto.UpdateMeTravelRequestRequest) (*dto.MeTravelRequestResponse, error) {
+	if userID <= 0 {
+		return nil, ErrInvalidInput
+	}
+
+	if err := s.ensureTouristLinked(userID); err != nil {
+		return nil, err
+	}
+
+	hasDocument, err := s.meRepository.HasIdentityDocument(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !hasDocument {
+		return nil, ErrMeDocumentRequired
+	}
+
+	if request.DesiredHotelID != nil {
+		if *request.DesiredHotelID <= 0 {
+			return nil, ErrInvalidInput
+		}
+
+		hotelExists, err := s.meRepository.HotelExists(*request.DesiredHotelID)
+		if err != nil {
+			return nil, err
+		}
+
+		if !hotelExists {
+			return nil, ErrMeHotelNotFound
+		}
+	}
+
+	updatedRequest, err := s.meRepository.UpdateTouristDesiredHotel(userID, request.DesiredHotelID)
+	if err != nil {
+		return nil, err
+	}
+
+	if updatedRequest == nil {
+		return nil, ErrMeTouristNotLinked
+	}
+
+	return updatedRequest, nil
 }
 
 func (s *MeService) Tours(userID int64, page int, limit int) (*dto.MeTourListResponse, error) {
@@ -182,6 +251,76 @@ func normalizeMePagination(page int, limit int) (int, int, int) {
 	return page, limit, offset
 }
 
+func (s *MeService) CargoTypes(userID int64) (*dto.MeCargoTypeListResponse, error) {
+	if userID <= 0 {
+		return nil, ErrInvalidInput
+	}
+
+	if err := s.ensureTouristLinked(userID); err != nil {
+		return nil, err
+	}
+
+	items, err := s.meRepository.FindCargoTypes()
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.MeCargoTypeListResponse{
+		Items: items,
+	}, nil
+}
+
+func (s *MeService) CreateCargo(userID int64, request dto.CreateMeCargoRequest) (*dto.MeCargoCreateResponse, error) {
+	if userID <= 0 || request.CargoTypeID <= 0 {
+		return nil, ErrInvalidInput
+	}
+
+	if err := s.ensureTouristLinked(userID); err != nil {
+		return nil, err
+	}
+
+	hasDocument, err := s.meRepository.HasIdentityDocument(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !hasDocument {
+		return nil, ErrMeDocumentRequired
+	}
+
+	cargoTypeExists, err := s.meRepository.CargoTypeExists(request.CargoTypeID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !cargoTypeExists {
+		return nil, ErrMeCargoTypeNotFound
+	}
+
+	groupMemberID, err := s.resolveGroupMemberID(userID, request.GroupMemberID)
+	if err != nil {
+		return nil, err
+	}
+
+	itemNumber := strings.TrimSpace(request.ItemNumber)
+	if itemNumber == "" {
+		itemNumber = "TOURIST-CARGO-" + time.Now().Format("20060102150405.000000000")
+	}
+
+	if request.PlacesCount <= 0 || request.WeightKg <= 0 || request.VolumetricWeightKg < 0 {
+		return nil, ErrInvalidInput
+	}
+
+	return s.meRepository.CreateCargoForUser(
+		groupMemberID,
+		request.CargoTypeID,
+		itemNumber,
+		request.PlacesCount,
+		request.WeightKg,
+		request.VolumetricWeightKg,
+	)
+}
+
 func (s *MeService) IdentityDocument(userID int64) (*dto.MeIdentityDocumentResponse, error) {
 	if userID <= 0 {
 		return nil, ErrInvalidInput
@@ -247,7 +386,7 @@ func (s *MeService) CreateIdentityDocument(
 	}
 
 	if err := validateMeDocumentDates(issueDate, expirationDate); err != nil {
-		return nil, ErrInvalidInput
+		return nil, ErrMeInvalidDocumentDates
 	}
 
 	return s.meRepository.CreateIdentityDocument(
@@ -325,7 +464,7 @@ func (s *MeService) UpdateIdentityDocument(
 	}
 
 	if err := validateMeDocumentDates(issueDate, expirationDate); err != nil {
-		return nil, ErrInvalidInput
+		return nil, ErrMeInvalidDocumentDates
 	}
 
 	updatedDocument, err := s.meRepository.UpdateIdentityDocument(

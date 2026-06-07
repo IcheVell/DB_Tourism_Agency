@@ -116,6 +116,36 @@ type MeCargoListResponse struct {
 	Limit int               `json:"limit"`
 }
 
+type MeCargoTypeResponse struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+type MeCargoTypeListResponse struct {
+	Items []MeCargoTypeResponse `json:"items"`
+}
+
+type CreateMeCargoRequest struct {
+	GroupMemberID      *int64  `json:"group_member_id,omitempty"`
+	CargoTypeID        int64   `json:"cargo_type_id"`
+	ItemNumber         string  `json:"item_number"`
+	PlacesCount        int     `json:"places_count"`
+	WeightKg           float64 `json:"weight_kg"`
+	VolumetricWeightKg float64 `json:"volumetric_weight_kg"`
+}
+
+type MeCargoCreateResponse struct {
+	CargoStatementID   int64   `json:"cargo_statement_id"`
+	StatementStatus    string  `json:"statement_status"`
+	CargoItemID        int64   `json:"cargo_item_id"`
+	ItemNumber         string  `json:"item_number"`
+	PlacesCount        int     `json:"places_count"`
+	WeightKg           float64 `json:"weight_kg"`
+	VolumetricWeightKg float64 `json:"volumetric_weight_kg"`
+	CargoTypeID        int64   `json:"cargo_type_id"`
+	CargoTypeName      string  `json:"cargo_type_name"`
+}
+
 type MeIdentityDocumentResponse struct {
 	ID             int64   `json:"id"`
 	TouristID      int64   `json:"tourist_id"`
@@ -158,4 +188,22 @@ type MeExcursionBookingResponse struct {
 	ExcursionScheduleID int64  `json:"excursion_schedule_id"`
 	GroupMemberID       int64  `json:"group_member_id"`
 	Status              string `json:"status"`
+}
+
+type MeTravelRequestResponse struct {
+	TouristID           int64   `json:"tourist_id"`
+	FirstName           string  `json:"first_name"`
+	LastName            string  `json:"last_name"`
+	MiddleName          *string `json:"middle_name,omitempty"`
+	Sex                 string  `json:"sex"`
+	BirthDate           string  `json:"birth_date"`
+	DesiredHotelID      *int64  `json:"desired_hotel_id,omitempty"`
+	DesiredHotelName    *string `json:"desired_hotel_name,omitempty"`
+	DesiredHotelAddress *string `json:"desired_hotel_address,omitempty"`
+	HasDocument         bool    `json:"has_document"`
+	GroupCount          int64   `json:"group_count"`
+}
+
+type UpdateMeTravelRequestRequest struct {
+	DesiredHotelID *int64 `json:"desired_hotel_id,omitempty"`
 }

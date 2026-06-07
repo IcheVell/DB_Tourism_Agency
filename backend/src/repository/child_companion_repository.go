@@ -27,7 +27,7 @@ func (r *ChildCompanionRepository) FindByIDs(adultGroupMemberID int64, childGrou
 
 	err := r.db.
 		Where(
-			"parent_group_member_id = ? AND child_group_member_id = ?",
+			"adult_group_member_id = ? AND child_group_member_id = ?",
 			adultGroupMemberID,
 			childGroupMemberID,
 		).
@@ -54,7 +54,7 @@ func (r *ChildCompanionRepository) FindAll(limit int, offset int) ([]models.Chil
 	}
 
 	err := r.db.
-		Order("parent_group_member_id ASC, child_group_member_id ASC").
+		Order("adult_group_member_id ASC, child_group_member_id ASC").
 		Limit(limit).
 		Offset(offset).
 		Find(&companions).

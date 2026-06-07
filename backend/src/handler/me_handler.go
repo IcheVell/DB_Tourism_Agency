@@ -22,12 +22,43 @@ func NewMeHandler(meService *service.MeService) *MeHandler {
 	}
 }
 
+func (h *MeHandler) TravelRequest(c echo.Context) error {
+	userID, err := getCurrentUserID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: "unauthorized"})
+	}
+
+	result, err := h.meService.TravelRequest(userID)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
+func (h *MeHandler) UpdateTravelRequest(c echo.Context) error {
+	userID, err := getCurrentUserID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: "unauthorized"})
+	}
+
+	var request dto.UpdateMeTravelRequestRequest
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid request body"})
+	}
+
+	result, err := h.meService.UpdateTravelRequest(userID, request)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
 func (h *MeHandler) Tours(c echo.Context) error {
 	userID, err := getCurrentUserID(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{
-			Message: "unauthorized",
-		})
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: "unauthorized"})
 	}
 
 	page := parseMeIntQuery(c, "page", 1)
@@ -44,9 +75,7 @@ func (h *MeHandler) Tours(c echo.Context) error {
 func (h *MeHandler) Visas(c echo.Context) error {
 	userID, err := getCurrentUserID(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{
-			Message: "unauthorized",
-		})
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: "unauthorized"})
 	}
 
 	page := parseMeIntQuery(c, "page", 1)
@@ -63,9 +92,7 @@ func (h *MeHandler) Visas(c echo.Context) error {
 func (h *MeHandler) Accommodations(c echo.Context) error {
 	userID, err := getCurrentUserID(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{
-			Message: "unauthorized",
-		})
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: "unauthorized"})
 	}
 
 	page := parseMeIntQuery(c, "page", 1)
@@ -82,9 +109,7 @@ func (h *MeHandler) Accommodations(c echo.Context) error {
 func (h *MeHandler) Excursions(c echo.Context) error {
 	userID, err := getCurrentUserID(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{
-			Message: "unauthorized",
-		})
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: "unauthorized"})
 	}
 
 	page := parseMeIntQuery(c, "page", 1)
@@ -101,9 +126,7 @@ func (h *MeHandler) Excursions(c echo.Context) error {
 func (h *MeHandler) Cargo(c echo.Context) error {
 	userID, err := getCurrentUserID(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{
-			Message: "unauthorized",
-		})
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: "unauthorized"})
 	}
 
 	page := parseMeIntQuery(c, "page", 1)
@@ -117,31 +140,143 @@ func (h *MeHandler) Cargo(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
+func (h *MeHandler) CargoTypes(c echo.Context) error {
+	userID, err := getCurrentUserID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: "unauthorized"})
+	}
+
+	result, err := h.meService.CargoTypes(userID)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	return c.JSON(http.StatusOK, result)
+}
+
+func (h *MeHandler) CreateCargo(c echo.Context) error {
+	userID, err := getCurrentUserID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: "unauthorized"})
+	}
+
+	var request dto.CreateMeCargoRequest
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid request body"})
+	}
+
+	result, err := h.meService.CreateCargo(userID, request)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	return c.JSON(http.StatusCreated, result)
+}
+
+func (h *MeHandler) IdentityDocument(c echo.Context) error {
+	userID, err := getCurrentUserID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: "unauthorized"})
+	}
+
+	document, err := h.meService.IdentityDocument(userID)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	return c.JSON(http.StatusOK, document)
+}
+
+func (h *MeHandler) CreateIdentityDocument(c echo.Context) error {
+	userID, err := getCurrentUserID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: "unauthorized"})
+	}
+
+	var request dto.CreateMeIdentityDocumentRequest
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid request body"})
+	}
+
+	document, err := h.meService.CreateIdentityDocument(userID, request)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	return c.JSON(http.StatusCreated, document)
+}
+
+func (h *MeHandler) UpdateIdentityDocument(c echo.Context) error {
+	userID, err := getCurrentUserID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: "unauthorized"})
+	}
+
+	var request dto.UpdateMeIdentityDocumentRequest
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid request body"})
+	}
+
+	document, err := h.meService.UpdateIdentityDocument(userID, request)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	return c.JSON(http.StatusOK, document)
+}
+
+func (h *MeHandler) CreateExcursionBooking(c echo.Context) error {
+	userID, err := getCurrentUserID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: "unauthorized"})
+	}
+
+	var request dto.CreateMeExcursionBookingRequest
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid request body"})
+	}
+
+	booking, err := h.meService.CreateExcursionBooking(userID, request)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	return c.JSON(http.StatusCreated, booking)
+}
+
 func (h *MeHandler) handleError(c echo.Context, err error) error {
 	switch {
 	case errors.Is(err, service.ErrMeTouristNotLinked):
-		return c.JSON(http.StatusNotFound, dto.ErrorResponse{
-			Message: "tourist profile is not linked to user",
-		})
-
+		return c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: "tourist profile is not linked to user"})
 	case errors.Is(err, service.ErrInvalidInput):
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Message: "invalid input",
-		})
-
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Проверьте заполненные данные"})
+	case errors.Is(err, service.ErrMeDocumentNotFound):
+		return c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: "identity document not found"})
+	case errors.Is(err, service.ErrMeDocumentAlreadyExists):
+		return c.JSON(http.StatusConflict, dto.ErrorResponse{Message: "identity document already exists"})
+	case errors.Is(err, service.ErrMeDocumentRequired):
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Сначала заполните документ"})
+	case errors.Is(err, service.ErrMeInvalidDocumentDates):
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "Дата окончания действия документа должна быть позже даты выдачи"})
+	case errors.Is(err, service.ErrMeGroupMemberNotFound):
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "group member not found"})
+	case errors.Is(err, service.ErrMeMultipleGroupMembers):
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "multiple group members found, pass group_member_id"})
+	case errors.Is(err, service.ErrMeScheduleNotFound):
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "excursion schedule not found"})
+	case errors.Is(err, service.ErrMeExcursionAlreadyBooked):
+		return c.JSON(http.StatusConflict, dto.ErrorResponse{Message: "excursion already booked"})
+	case errors.Is(err, service.ErrMeCargoTypeNotFound):
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "cargo type not found"})
+	case errors.Is(err, service.ErrMeHotelNotFound):
+		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "hotel not found"})
 	default:
-		return c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
-			Message: "internal server error",
-		})
+		return c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: "internal server error"})
 	}
 }
 
 func getCurrentUserID(c echo.Context) (int64, error) {
-	keys := []string{
-		"user_id",
-		"userID",
-		"id",
-	}
+	keys := []string{"user_id", "userID", "id"}
 
 	for _, key := range keys {
 		value := c.Get(key)
@@ -196,7 +331,6 @@ func parseMeAnyInt64(value any) (int64, error) {
 		if typedValue > uint64(^uint(0)>>1) {
 			return 0, fmt.Errorf("uint64 overflow")
 		}
-
 		return int64(typedValue), nil
 	case float64:
 		return int64(typedValue), nil
@@ -219,92 +353,4 @@ func parseMeIntQuery(c echo.Context, name string, defaultValue int) int {
 	}
 
 	return parsedValue
-}
-
-func (h *MeHandler) IdentityDocument(c echo.Context) error {
-	userID, err := getCurrentUserID(c)
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{
-			Message: "unauthorized",
-		})
-	}
-
-	document, err := h.meService.IdentityDocument(userID)
-	if err != nil {
-		return h.handleError(c, err)
-	}
-
-	return c.JSON(http.StatusOK, document)
-}
-
-func (h *MeHandler) CreateIdentityDocument(c echo.Context) error {
-	userID, err := getCurrentUserID(c)
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{
-			Message: "unauthorized",
-		})
-	}
-
-	var request dto.CreateMeIdentityDocumentRequest
-
-	if err := c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Message: "invalid request body",
-		})
-	}
-
-	document, err := h.meService.CreateIdentityDocument(userID, request)
-	if err != nil {
-		return h.handleError(c, err)
-	}
-
-	return c.JSON(http.StatusCreated, document)
-}
-
-func (h *MeHandler) UpdateIdentityDocument(c echo.Context) error {
-	userID, err := getCurrentUserID(c)
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{
-			Message: "unauthorized",
-		})
-	}
-
-	var request dto.UpdateMeIdentityDocumentRequest
-
-	if err := c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Message: "invalid request body",
-		})
-	}
-
-	document, err := h.meService.UpdateIdentityDocument(userID, request)
-	if err != nil {
-		return h.handleError(c, err)
-	}
-
-	return c.JSON(http.StatusOK, document)
-}
-
-func (h *MeHandler) CreateExcursionBooking(c echo.Context) error {
-	userID, err := getCurrentUserID(c)
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, dto.ErrorResponse{
-			Message: "unauthorized",
-		})
-	}
-
-	var request dto.CreateMeExcursionBookingRequest
-
-	if err := c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Message: "invalid request body",
-		})
-	}
-
-	booking, err := h.meService.CreateExcursionBooking(userID, request)
-	if err != nil {
-		return h.handleError(c, err)
-	}
-
-	return c.JSON(http.StatusCreated, booking)
 }

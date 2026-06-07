@@ -225,8 +225,18 @@ func buildVisa(
 		return nil, ErrVisaInvalidValidUntil
 	}
 
-	if submittedAt != nil && createdAt.After(*submittedAt) {
-		return nil, ErrVisaInvalidTiming
+	now := time.Now().UTC()
+
+	if (normalizedStatus == "submitted" || normalizedStatus == "approved" || normalizedStatus == "rejected" || normalizedStatus == "issued") && submittedAt == nil {
+		submittedAt = &now
+	}
+
+	if (normalizedStatus == "approved" || normalizedStatus == "rejected" || normalizedStatus == "issued") && decisionAt == nil {
+		decisionAt = &now
+	}
+
+	if normalizedStatus == "issued" && issuedAt == nil {
+		issuedAt = &now
 	}
 
 	if submittedAt != nil && decisionAt != nil && submittedAt.After(*decisionAt) {
@@ -279,7 +289,7 @@ func toVisaResponse(visa *models.Visa) *dto.VisaResponse {
 
 func isValidVisaStatus(status string) bool {
 	switch status {
-	case "draft", "submitted", "rejected", "issued", "cancelled", "expired":
+	case "draft", "submitted", "approved", "rejected", "issued", "cancelled", "expired":
 		return true
 	default:
 		return false

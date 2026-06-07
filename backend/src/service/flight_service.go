@@ -10,6 +10,7 @@ import (
 
 var (
 	ErrFlightNotFound            = errors.New("flight not found")
+	ErrFlightInvalidFlightNumber = errors.New("flight_number must be positive")
 	ErrFlightInvalidCapacity     = errors.New("capacity must be positive")
 	ErrFlightInvalidFlightDate   = errors.New("flight_date must be YYYY-MM-DD date")
 	ErrFlightInvalidFlightTypeID = errors.New("flight_type_id must be positive")
@@ -26,7 +27,7 @@ func NewFlightService(repo *repository.FlightRepository) *FlightService {
 }
 
 func (s *FlightService) Create(req dto.CreateFlightRequest) (*dto.FlightResponse, error) {
-	flight, err := buildFlight(req.Capacity, req.FlightDate, req.FlightTypeID)
+	flight, err := buildFlight(req.FlightNumber, req.Capacity, req.FlightDate, req.FlightTypeID)
 	if err != nil {
 		return nil, err
 	}
@@ -94,11 +95,12 @@ func (s *FlightService) Update(id int64, req dto.UpdateFlightRequest) (*dto.Flig
 		return nil, ErrFlightNotFound
 	}
 
-	updatedFlight, err := buildFlight(req.Capacity, req.FlightDate, req.FlightTypeID)
+	updatedFlight, err := buildFlight(req.FlightNumber, req.Capacity, req.FlightDate, req.FlightTypeID)
 	if err != nil {
 		return nil, err
 	}
 
+	flight.FlightNumber = updatedFlight.FlightNumber
 	flight.Capacity = updatedFlight.Capacity
 	flight.FlightDate = updatedFlight.FlightDate
 	flight.FlightTypeID = updatedFlight.FlightTypeID
@@ -123,7 +125,11 @@ func (s *FlightService) Delete(id int64) error {
 	return s.repo.Delete(flight)
 }
 
-func buildFlight(capacity int, flightDateRaw string, flightTypeID int64) (*models.Flight, error) {
+func buildFlight(flightNumber int, capacity int, flightDateRaw string, flightTypeID int64) (*models.Flight, error) {
+	if flightNumber <= 0 {
+		return nil, ErrFlightInvalidFlightNumber
+	}
+
 	if capacity <= 0 {
 		return nil, ErrFlightInvalidCapacity
 	}
@@ -138,6 +144,7 @@ func buildFlight(capacity int, flightDateRaw string, flightTypeID int64) (*model
 	}
 
 	return &models.Flight{
+		FlightNumber: flightNumber,
 		Capacity:     capacity,
 		FlightDate:   flightDate,
 		FlightTypeID: flightTypeID,
@@ -147,6 +154,7 @@ func buildFlight(capacity int, flightDateRaw string, flightTypeID int64) (*model
 func toFlightResponse(flight *models.Flight) *dto.FlightResponse {
 	return &dto.FlightResponse{
 		ID:           flight.ID,
+		FlightNumber: flight.FlightNumber,
 		Capacity:     flight.Capacity,
 		FlightDate:   flight.FlightDate.Format("2006-01-02"),
 		FlightTypeID: flight.FlightTypeID,

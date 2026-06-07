@@ -27,11 +27,20 @@ func NewGroupMemberService(repo *repository.GroupMemberRepository) *GroupMemberS
 }
 
 func (s *GroupMemberService) Create(req dto.CreateGroupMemberRequest) (*dto.GroupMemberResponse, error) {
+	desiredHotelID := req.DesiredHotelID
+	if desiredHotelID == nil && req.TouristID > 0 {
+		storedDesiredHotelID, err := s.repo.FindTouristDesiredHotelID(req.TouristID)
+		if err != nil {
+			return nil, err
+		}
+		desiredHotelID = storedDesiredHotelID
+	}
+
 	if err := validateGroupMemberIDs(
 		req.TouristGroupID,
 		req.TouristCategoryID,
 		req.TouristID,
-		req.DesiredHotelID,
+		desiredHotelID,
 	); err != nil {
 		return nil, err
 	}
@@ -40,7 +49,7 @@ func (s *GroupMemberService) Create(req dto.CreateGroupMemberRequest) (*dto.Grou
 		TouristGroupID:    req.TouristGroupID,
 		TouristCategoryID: req.TouristCategoryID,
 		TouristID:         req.TouristID,
-		DesiredHotelID:    req.DesiredHotelID,
+		DesiredHotelID:    desiredHotelID,
 	}
 
 	if err := s.repo.Create(groupMember); err != nil {

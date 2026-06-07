@@ -14,7 +14,7 @@ var (
 	ErrCargoItemNotFound                  = errors.New("cargo item not found")
 	ErrCargoItemInvalidItemNumber         = errors.New("item_number is required")
 	ErrCargoItemInvalidWeightKg           = errors.New("weight_kg must be positive")
-	ErrCargoItemInvalidVolumetricWeightKg = errors.New("volumetric_weight_kg must be positive")
+	ErrCargoItemInvalidVolumetricWeightKg = errors.New("volumetric_weight_kg must be non-negative")
 	ErrCargoItemInvalidPlacesCount        = errors.New("places_count must be positive")
 	ErrCargoItemInvalidPackagedAt         = errors.New("packaged_at must be RFC3339 datetime")
 	ErrCargoItemInvalidCargoTypeID        = errors.New("cargo_type_id must be positive")
@@ -171,7 +171,7 @@ func buildCargoItem(
 		return nil, ErrCargoItemInvalidWeightKg
 	}
 
-	if volumetricWeightKg <= 0 {
+	if volumetricWeightKg < 0 {
 		return nil, ErrCargoItemInvalidVolumetricWeightKg
 	}
 

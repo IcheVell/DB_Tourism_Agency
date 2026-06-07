@@ -91,8 +91,8 @@ func (r *ReportRepository) CountTourists(from *time.Time, to *time.Time, categor
 		SELECT COUNT(DISTINCT gm.tourist_id)
 		FROM group_members gm
 		JOIN tourist_groups tg ON tg.id = gm.tourist_group_id
-		WHERE (? IS NULL OR tg.arrival_date >= ?)
-		  AND (? IS NULL OR tg.departure_date <= ?)
+		WHERE (CAST(? AS timestamptz) IS NULL OR tg.arrival_date >= CAST(? AS timestamptz))
+		  AND (CAST(? AS timestamptz) IS NULL OR tg.departure_date <= CAST(? AS timestamptz))
 		  AND (? = 0 OR gm.tourist_category_id = ?)
 	`, from, from, to, to, categoryID, categoryID).Scan(&count).Error
 
@@ -102,6 +102,13 @@ func (r *ReportRepository) CountTourists(from *time.Time, to *time.Time, categor
 func (r *ReportRepository) FindTouristInfo(touristID int64) (*dto.TouristInfoReportResponse, error) {
 	var result dto.TouristInfoReportResponse
 
+	var baseInfo struct {
+		TouristID  int64
+		FirstName  string
+		LastName   string
+		MiddleName *string
+	}
+
 	if err := r.db.Raw(`
 		SELECT
 			id AS tourist_id,
@@ -110,13 +117,18 @@ func (r *ReportRepository) FindTouristInfo(touristID int64) (*dto.TouristInfoRep
 			middle_name
 		FROM tourists
 		WHERE id = ?
-	`, touristID).Scan(&result).Error; err != nil {
+	`, touristID).Scan(&baseInfo).Error; err != nil {
 		return nil, err
 	}
 
-	if result.TouristID == 0 {
+	if baseInfo.TouristID == 0 {
 		return nil, nil
 	}
+
+	result.TouristID = baseInfo.TouristID
+	result.FirstName = baseInfo.FirstName
+	result.LastName = baseInfo.LastName
+	result.MiddleName = baseInfo.MiddleName
 
 	if err := r.db.Raw(`
 		SELECT COUNT(DISTINCT tourist_group_id)
@@ -216,8 +228,8 @@ func (r *ReportRepository) FindHotelOccupancy(from *time.Time, to *time.Time) ([
 		FROM hotels h
 		JOIN hotel_rooms hr ON hr.hotel_id = h.id
 		JOIN accommodations a ON a.hotel_room_id = hr.id
-		WHERE (? IS NULL OR a.check_in_at <= ?)
-		  AND (? IS NULL OR a.check_out_at IS NULL OR a.check_out_at >= ?)
+		WHERE (CAST(? AS timestamptz) IS NULL OR a.check_in_at <= CAST(? AS timestamptz))
+		  AND (CAST(? AS timestamptz) IS NULL OR a.check_out_at IS NULL OR a.check_out_at >= CAST(? AS timestamptz))
 		  AND a.status <> 'cancelled'
 		GROUP BY h.id, h.name
 		ORDER BY h.name ASC
@@ -235,8 +247,8 @@ func (r *ReportRepository) CountExcursionTourists(from *time.Time, to *time.Time
 		JOIN excursion_schedule es ON es.id = eb.excursion_schedule_id
 		WHERE eb.group_member_id IS NOT NULL
 		  AND eb.status <> 'cancelled'
-		  AND (? IS NULL OR es.start_time >= ?)
-		  AND (? IS NULL OR es.start_time <= ?)
+		  AND (CAST(? AS timestamptz) IS NULL OR es.start_time >= CAST(? AS timestamptz))
+		  AND (CAST(? AS timestamptz) IS NULL OR es.start_time <= CAST(? AS timestamptz))
 	`, from, from, to, to).Scan(&count).Error
 
 	return count, err
@@ -254,8 +266,8 @@ func (r *ReportRepository) FindExcursionAnalytics(from *time.Time, to *time.Time
 		FROM excursions e
 		JOIN excursion_schedule es ON es.excursion_id = e.id
 		LEFT JOIN excursion_bookings eb ON eb.excursion_schedule_id = es.id
-		WHERE (? IS NULL OR es.start_time >= ?)
-		  AND (? IS NULL OR es.start_time <= ?)
+		WHERE (CAST(? AS timestamptz) IS NULL OR es.start_time >= CAST(? AS timestamptz))
+		  AND (CAST(? AS timestamptz) IS NULL OR es.start_time <= CAST(? AS timestamptz))
 		GROUP BY e.id, e.name
 		ORDER BY bookings_count DESC, visited_count DESC, e.name ASC
 	`, from, from, to, to).Scan(&result.PopularExcursions).Error; err != nil {
@@ -271,8 +283,8 @@ func (r *ReportRepository) FindExcursionAnalytics(from *time.Time, to *time.Time
 		FROM excursion_agencies ea
 		JOIN excursion_schedule es ON es.excursion_agency_id = ea.id
 		LEFT JOIN excursion_bookings eb ON eb.excursion_schedule_id = es.id
-		WHERE (? IS NULL OR es.start_time >= ?)
-		  AND (? IS NULL OR es.start_time <= ?)
+		WHERE (CAST(? AS timestamptz) IS NULL OR es.start_time >= CAST(? AS timestamptz))
+		  AND (CAST(? AS timestamptz) IS NULL OR es.start_time <= CAST(? AS timestamptz))
 		GROUP BY ea.id, ea.name
 		ORDER BY average_rating DESC, ratings_count DESC, ea.name ASC
 	`, from, from, to, to).Scan(&result.QualityAgencies).Error; err != nil {
@@ -333,8 +345,8 @@ func (r *ReportRepository) FindWarehouseTurnover(from *time.Time, to *time.Time)
 		LEFT JOIN flight_types ft ON ft.id = f.flight_type_id
 		JOIN cargo_items ci ON ci.cargo_statement_id = csh.cargo_statement_id
 		WHERE csh.status <> 'cancelled'
-		  AND (? IS NULL OR csh.shipped_at >= ?)
-		  AND (? IS NULL OR csh.shipped_at <= ?)
+		  AND (CAST(? AS timestamptz) IS NULL OR csh.shipped_at >= CAST(? AS timestamptz))
+		  AND (CAST(? AS timestamptz) IS NULL OR csh.shipped_at <= CAST(? AS timestamptz))
 	`, from, from, to, to).Scan(&result).Error
 
 	return &result, err
@@ -383,8 +395,8 @@ func (r *ReportRepository) FindIncomeExpense(from *time.Time, to *time.Time) ([]
 			COALESCE(SUM(fo.amount), 0) AS amount
 		FROM financial_operations fo
 		JOIN financial_categories fc ON fc.id = fo.financial_category_id
-		WHERE (? IS NULL OR fo.operation_at >= ?)
-		  AND (? IS NULL OR fo.operation_at <= ?)
+		WHERE (CAST(? AS timestamptz) IS NULL OR fo.operation_at >= CAST(? AS timestamptz))
+		  AND (CAST(? AS timestamptz) IS NULL OR fo.operation_at <= CAST(? AS timestamptz))
 		GROUP BY fc.id, fc.name, fc.operation_type
 		ORDER BY fc.operation_type ASC, fc.name ASC
 	`, from, from, to, to).Scan(&items).Error
@@ -406,8 +418,8 @@ func (r *ReportRepository) FindCargoTypeShare(from *time.Time, to *time.Time) ([
 			JOIN cargo_items ci ON ci.cargo_type_id = ct.id
 			JOIN cargo_statements cs ON cs.id = ci.cargo_statement_id
 			LEFT JOIN cargo_shipments csh ON csh.cargo_statement_id = cs.id
-			WHERE (? IS NULL OR csh.shipped_at >= ? OR ci.packaged_at >= ?)
-			  AND (? IS NULL OR csh.shipped_at <= ? OR ci.packaged_at <= ?)
+			WHERE (CAST(? AS timestamptz) IS NULL OR csh.shipped_at >= CAST(? AS timestamptz) OR ci.packaged_at >= CAST(? AS timestamptz))
+			  AND (CAST(? AS timestamptz) IS NULL OR csh.shipped_at <= CAST(? AS timestamptz) OR ci.packaged_at <= CAST(? AS timestamptz))
 			GROUP BY ct.id, ct.name
 		),
 		total AS (
@@ -439,8 +451,8 @@ func (r *ReportRepository) FindProfitability(from *time.Time, to *time.Time) (*d
 			COALESCE(SUM(CASE WHEN fc.operation_type = 'expense' THEN fo.amount ELSE 0 END), 0) AS expense
 		FROM financial_operations fo
 		JOIN financial_categories fc ON fc.id = fo.financial_category_id
-		WHERE (? IS NULL OR fo.operation_at >= ?)
-		  AND (? IS NULL OR fo.operation_at <= ?)
+		WHERE (CAST(? AS timestamptz) IS NULL OR fo.operation_at >= CAST(? AS timestamptz))
+		  AND (CAST(? AS timestamptz) IS NULL OR fo.operation_at <= CAST(? AS timestamptz))
 	`, from, from, to, to).Scan(&result).Error
 
 	if err != nil {
@@ -471,8 +483,8 @@ func (r *ReportRepository) FindTouristCategoryRatio(
 			COUNT(DISTINCT CASE WHEN gm.tourist_category_id IN (?, ?) THEN gm.tourist_id END) AS total
 		FROM group_members gm
 		JOIN tourist_groups tg ON tg.id = gm.tourist_group_id
-		WHERE (? IS NULL OR tg.arrival_date >= ?)
-		  AND (? IS NULL OR tg.arrival_date <= ?)
+		WHERE (CAST(? AS timestamptz) IS NULL OR tg.arrival_date >= CAST(? AS timestamptz))
+		  AND (CAST(? AS timestamptz) IS NULL OR tg.arrival_date <= CAST(? AS timestamptz))
 	`, restCategoryID, shopCategoryID, restCategoryID, shopCategoryID, from, from, to, to).Scan(&result).Error
 
 	if err != nil {

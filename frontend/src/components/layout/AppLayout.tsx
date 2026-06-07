@@ -5,7 +5,16 @@ import { navigationItems, type NavigationItem } from '../../config/navigation';
 export function AppLayout() {
     const { user, logout, hasPermission } = useAuth();
 
+    const roles = Array.isArray(user?.roles) ? user.roles : [];
+
     const visibleItems = navigationItems.filter((item: NavigationItem) => {
+        if (Array.isArray(item.roles) && item.roles.length > 0) {
+            const roleAllowed = item.roles.some((role) => roles.includes(role));
+            if (!roleAllowed) {
+                return false;
+            }
+        }
+
         if (!item.permission) {
             return true;
         }
@@ -28,7 +37,6 @@ export function AppLayout() {
         {},
     );
 
-    const roles = Array.isArray(user?.roles) ? user.roles : [];
     const rolesText = roles.length > 0 ? roles.join(', ') : 'без роли';
 
     return (

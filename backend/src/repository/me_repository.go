@@ -39,6 +39,77 @@ func (r *MeRepository) FindTouristIDByUserID(userID int64) (*int64, error) {
 	return &touristID, nil
 }
 
+func (r *MeRepository) FindTravelRequestByUserID(userID int64) (*dto.MeTravelRequestResponse, error) {
+	var response dto.MeTravelRequestResponse
+
+	err := r.db.Raw(`
+		SELECT
+			t.id AS tourist_id,
+			t.first_name,
+			t.last_name,
+			t.middle_name,
+			t.sex,
+			TO_CHAR(t.birth_date, 'YYYY-MM-DD') AS birth_date,
+			h.id AS desired_hotel_id,
+			h.name AS desired_hotel_name,
+			h.address AS desired_hotel_address,
+			EXISTS (
+				SELECT 1
+				FROM identity_documents idoc
+				WHERE idoc.tourist_id = t.id
+			) AS has_document,
+			(
+				SELECT COUNT(*)
+				FROM group_members gm
+				WHERE gm.tourist_id = t.id
+			) AS group_count
+		FROM tourists t
+		LEFT JOIN hotels h ON h.id = t.desired_hotel_id
+		WHERE t.user_id = ?
+		LIMIT 1
+	`, userID).Scan(&response).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	if response.TouristID == 0 {
+		return nil, nil
+	}
+
+	return &response, nil
+}
+
+func (r *MeRepository) HotelExists(hotelID int64) (bool, error) {
+	var count int64
+
+	err := r.db.Raw(`
+		SELECT COUNT(*)
+		FROM hotels
+		WHERE id = ?
+	`, hotelID).Scan(&count).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
+func (r *MeRepository) UpdateTouristDesiredHotel(userID int64, desiredHotelID *int64) (*dto.MeTravelRequestResponse, error) {
+	err := r.db.Exec(`
+		UPDATE tourists
+		SET desired_hotel_id = ?
+		WHERE user_id = ?
+	`, desiredHotelID, userID).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return r.FindTravelRequestByUserID(userID)
+}
+
 func (r *MeRepository) FindToursByUserID(userID int64, limit int, offset int) ([]dto.MeTourResponse, int64, error) {
 	var items []dto.MeTourResponse
 	var total int64
@@ -512,4 +583,115 @@ func (r *MeRepository) CreateExcursionBooking(
 	}
 
 	return &booking, nil
+}
+
+func (r *MeRepository) FindCargoTypes() ([]dto.MeCargoTypeResponse, error) {
+	var items []dto.MeCargoTypeResponse
+
+	err := r.db.Raw(`
+		SELECT
+			id,
+			name
+		FROM cargo_types
+		ORDER BY name ASC
+	`).Scan(&items).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
+func (r *MeRepository) CargoTypeExists(cargoTypeID int64) (bool, error) {
+	var count int64
+
+	err := r.db.Raw(`
+		SELECT COUNT(*)
+		FROM cargo_types
+		WHERE id = ?
+	`, cargoTypeID).Scan(&count).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
+func (r *MeRepository) CreateCargoForUser(
+	groupMemberID int64,
+	cargoTypeID int64,
+	itemNumber string,
+	placesCount int,
+	weightKg float64,
+	volumetricWeightKg float64,
+) (*dto.MeCargoCreateResponse, error) {
+	var response dto.MeCargoCreateResponse
+
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		var statementID int64
+
+		if err := tx.Raw(`
+			SELECT id
+			FROM cargo_statements
+			WHERE group_member_id = ?
+			  AND status = 'draft'
+			ORDER BY id DESC
+			LIMIT 1
+		`, groupMemberID).Scan(&statementID).Error; err != nil {
+			return err
+		}
+
+		if statementID == 0 {
+			if err := tx.Raw(`
+				INSERT INTO cargo_statements (
+					status,
+					group_member_id
+				)
+				VALUES ('draft', ?)
+				RETURNING id
+			`, groupMemberID).Scan(&statementID).Error; err != nil {
+				return err
+			}
+		}
+
+		if err := tx.Raw(`
+			INSERT INTO cargo_items (
+				weight_kg,
+				volumetric_weight_kg,
+				places_count,
+				item_number,
+				cargo_type_id,
+				cargo_statement_id
+			)
+			VALUES (?, ?, ?, ?, ?, ?)
+			RETURNING id
+		`, weightKg, volumetricWeightKg, placesCount, itemNumber, cargoTypeID, statementID).Scan(&response.CargoItemID).Error; err != nil {
+			return err
+		}
+
+		return tx.Raw(`
+			SELECT
+				cs.id AS cargo_statement_id,
+				cs.status AS statement_status,
+				ci.id AS cargo_item_id,
+				ci.item_number,
+				ci.places_count,
+				ci.weight_kg,
+				ci.volumetric_weight_kg,
+				ct.id AS cargo_type_id,
+				ct.name AS cargo_type_name
+			FROM cargo_items ci
+			JOIN cargo_statements cs ON cs.id = ci.cargo_statement_id
+			JOIN cargo_types ct ON ct.id = ci.cargo_type_id
+			WHERE ci.id = ?
+		`, response.CargoItemID).Scan(&response).Error
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }

@@ -11,12 +11,13 @@ import (
 )
 
 var (
-	ErrTouristNotFound         = errors.New("tourist not found")
-	ErrTouristInvalidFirstName = errors.New("tourist first name is required")
-	ErrTouristInvalidLastName  = errors.New("tourist last name is required")
-	ErrTouristInvalidSex       = errors.New("tourist sex must be male or female")
-	ErrTouristInvalidBirthDate = errors.New("tourist birth date must be in YYYY-MM-DD format")
-	ErrTouristInvalidUserID    = errors.New("user_id must be positive")
+	ErrTouristNotFound              = errors.New("tourist not found")
+	ErrTouristInvalidFirstName      = errors.New("tourist first name is required")
+	ErrTouristInvalidLastName       = errors.New("tourist last name is required")
+	ErrTouristInvalidSex            = errors.New("tourist sex must be male or female")
+	ErrTouristInvalidBirthDate      = errors.New("tourist birth date must be in YYYY-MM-DD format")
+	ErrTouristInvalidUserID         = errors.New("user_id must be positive")
+	ErrTouristInvalidDesiredHotelID = errors.New("desired_hotel_id must be positive")
 )
 
 type TouristService struct {
@@ -55,13 +56,18 @@ func (s *TouristService) Create(req dto.CreateTouristRequest) (*dto.TouristRespo
 		return nil, ErrTouristInvalidUserID
 	}
 
+	if req.DesiredHotelID != nil && *req.DesiredHotelID <= 0 {
+		return nil, ErrTouristInvalidDesiredHotelID
+	}
+
 	tourist := &models.Tourist{
-		FirstName:  firstName,
-		LastName:   lastName,
-		MiddleName: normalizeOptionalString(req.MiddleName),
-		Sex:        sex,
-		BirthDate:  birthDate,
-		UserID:     req.UserID,
+		FirstName:      firstName,
+		LastName:       lastName,
+		MiddleName:     normalizeOptionalString(req.MiddleName),
+		Sex:            sex,
+		BirthDate:      birthDate,
+		UserID:         req.UserID,
+		DesiredHotelID: req.DesiredHotelID,
 	}
 
 	if err := s.repo.Create(tourist); err != nil {
@@ -143,6 +149,10 @@ func (s *TouristService) Update(id int64, req dto.UpdateTouristRequest) (*dto.To
 		return nil, ErrTouristInvalidUserID
 	}
 
+	if req.DesiredHotelID != nil && *req.DesiredHotelID <= 0 {
+		return nil, ErrTouristInvalidDesiredHotelID
+	}
+
 	tourist, err := s.repo.FindByID(id)
 	if err != nil {
 		return nil, err
@@ -158,6 +168,7 @@ func (s *TouristService) Update(id int64, req dto.UpdateTouristRequest) (*dto.To
 	tourist.Sex = sex
 	tourist.BirthDate = birthDate
 	tourist.UserID = req.UserID
+	tourist.DesiredHotelID = req.DesiredHotelID
 
 	if err := s.repo.Update(tourist); err != nil {
 		return nil, err
@@ -181,13 +192,14 @@ func (s *TouristService) Delete(id int64) error {
 
 func toTouristResponse(tourist *models.Tourist) *dto.TouristResponse {
 	return &dto.TouristResponse{
-		ID:         tourist.ID,
-		FirstName:  tourist.FirstName,
-		LastName:   tourist.LastName,
-		MiddleName: tourist.MiddleName,
-		Sex:        tourist.Sex,
-		BirthDate:  tourist.BirthDate.Format("2006-01-02"),
-		UserID:     tourist.UserID,
+		ID:             tourist.ID,
+		FirstName:      tourist.FirstName,
+		LastName:       tourist.LastName,
+		MiddleName:     tourist.MiddleName,
+		Sex:            tourist.Sex,
+		BirthDate:      tourist.BirthDate.Format("2006-01-02"),
+		UserID:         tourist.UserID,
+		DesiredHotelID: tourist.DesiredHotelID,
 	}
 }
 

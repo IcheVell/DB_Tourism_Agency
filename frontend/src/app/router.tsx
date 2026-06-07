@@ -11,6 +11,8 @@ import { MeListPage } from '../pages/me/MeListPage';
 import { ReportsPage } from '../pages/reports/ReportsPage';
 import { MyDocumentPage } from '../pages/me/MyDocumentPage';
 import { ExcursionSchedulePage } from '../pages/me/ExcursionSchedulePage';
+import { MyCargoPage } from '../pages/me/MyCargoPage';
+import { MyTravelRequestPage } from '../pages/me/MyTravelRequestPage';
 
 export const router = createBrowserRouter([
     {
@@ -29,16 +31,17 @@ export const router = createBrowserRouter([
                 children: [
                     { index: true, element: <DashboardPage /> },
                     { path: 'profile', element: <ProfilePage /> },
+                    { path: 'me/travel-request', element: <MyTravelRequestPage /> },
                     { path: 'me/tours', element: <MeListPage type="tours" /> },
                     { path: 'me/visas', element: <MeListPage type="visas" /> },
                     { path: 'me/accommodations', element: <MeListPage type="accommodations" /> },
                     { path: 'me/excursions', element: <MeListPage type="excursions" /> },
-                    { path: 'me/cargo', element: <MeListPage type="cargo" /> },
+                    { path: 'me/cargo', element: <MyCargoPage /> },
                     { path: 'crud/:resourceKey', element: <CrudListPage /> },
                     { path: 'reports', element: <ReportsPage /> },
-                    { path: '*', element: <NotFoundPage /> },
                     { path: 'me/identity-document', element: <MyDocumentPage /> },
                     { path: 'excursion-schedules', element: <ExcursionSchedulePage /> },
+                    { path: '*', element: <NotFoundPage /> },
                 ],
             },
         ],

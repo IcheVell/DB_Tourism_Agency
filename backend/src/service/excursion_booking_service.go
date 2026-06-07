@@ -164,10 +164,6 @@ func buildExcursionBooking(
 		return nil, ErrExcursionBookingInvalidTouristRating
 	}
 
-	if normalizedStatus == "visited" && touristRating == nil {
-		return nil, ErrExcursionBookingRatingRequiredForVisited
-	}
-
 	if normalizedStatus != "visited" && touristRating != nil {
 		return nil, ErrExcursionBookingRatingOnlyForVisited
 	}

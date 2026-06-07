@@ -1027,6 +1027,18 @@ func RegisterRoutes(
 	)
 
 	me.GET(
+		"/travel-request",
+		meHandler.TravelRequest,
+		appmiddleware.RequirePermission(aclService, "profile.read"),
+	)
+
+	me.PUT(
+		"/travel-request",
+		meHandler.UpdateTravelRequest,
+		appmiddleware.RequirePermission(aclService, "profile.update"),
+	)
+
+	me.GET(
 		"/tours",
 		meHandler.Tours,
 		appmiddleware.RequirePermission(aclService, "own_tours.read"),
@@ -1054,6 +1066,18 @@ func RegisterRoutes(
 		"/cargo",
 		meHandler.Cargo,
 		appmiddleware.RequirePermission(aclService, "own_cargo.read"),
+	)
+
+	me.GET(
+		"/cargo-types",
+		meHandler.CargoTypes,
+		appmiddleware.RequirePermission(aclService, "own_cargo.read"),
+	)
+
+	me.POST(
+		"/cargo",
+		meHandler.CreateCargo,
+		appmiddleware.RequirePermission(aclService, "own_cargo.create"),
 	)
 
 	me.GET(

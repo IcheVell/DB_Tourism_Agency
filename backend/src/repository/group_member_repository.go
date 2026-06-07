@@ -18,6 +18,26 @@ func NewGroupMemberRepository(db *gorm.DB) *GroupMemberRepository {
 	}
 }
 
+func (r *GroupMemberRepository) FindTouristDesiredHotelID(touristID int64) (*int64, error) {
+	var desiredHotelID int64
+
+	err := r.db.Raw(`
+		SELECT COALESCE(desired_hotel_id, 0)
+		FROM tourists
+		WHERE id = ?
+	`, touristID).Scan(&desiredHotelID).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	if desiredHotelID == 0 {
+		return nil, nil
+	}
+
+	return &desiredHotelID, nil
+}
+
 func (r *GroupMemberRepository) Create(groupMember *models.GroupMember) error {
 	return r.db.Create(groupMember).Error
 }

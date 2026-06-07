@@ -39,11 +39,11 @@ BEGIN
         RAISE EXCEPTION 'Adult group member % does not exist', NEW.adult_group_member_id;
     END IF;
 
-    IF lower(child_category_name) <> 'child' THEN
+    IF lower(child_category_name) NOT IN ('child', 'children', 'ребенок', 'ребёнок') THEN
         RAISE EXCEPTION 'Group member % is not a child', NEW.child_group_member_id;
     END IF;
 
-    IF lower(adult_category_name) = 'child' THEN
+    IF lower(adult_category_name) IN ('child', 'children', 'ребенок', 'ребёнок') THEN
         RAISE EXCEPTION 'Group member % cannot be a child companion because this member is also child', NEW.adult_group_member_id;
     END IF;
 
@@ -178,12 +178,9 @@ EXECUTE FUNCTION trg_check_excursion_booking_integrity();
 CREATE OR REPLACE FUNCTION trg_check_cargo_shipment_integrity()
     RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.status = 'pending' AND NEW.shipped_at IS NOT NULL THEN
-        RAISE EXCEPTION 'shipped_at must be NULL when cargo shipment status is pending';
-    END IF;
-
-    IF NEW.status IN ('shipped', 'delivered') AND NEW.shipped_at IS NULL THEN
-        RAISE EXCEPTION 'shipped_at must be set when cargo shipment status is %', NEW.status;
+    IF NEW.tourist_rating IS NOT NULL
+        AND NEW.status <> 'visited' THEN
+        RAISE EXCEPTION 'tourist_rating can be set only when booking status is visited';
     END IF;
 
     RETURN NEW;

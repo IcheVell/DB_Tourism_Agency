@@ -57,6 +57,11 @@ func (h *TouristHandler) Create(c echo.Context) error {
 				"error": "user_id must be positive",
 			})
 
+		case errors.Is(err, service.ErrTouristInvalidDesiredHotelID):
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"error": "desired_hotel_id must be positive",
+			})
+
 		default:
 			return writeDatabaseError(c, err)
 		}
@@ -143,6 +148,11 @@ func (h *TouristHandler) Update(c echo.Context) error {
 		case errors.Is(err, service.ErrTouristInvalidUserID):
 			return c.JSON(http.StatusBadRequest, map[string]string{
 				"error": "user_id must be positive",
+			})
+
+		case errors.Is(err, service.ErrTouristInvalidDesiredHotelID):
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"error": "desired_hotel_id must be positive",
 			})
 
 		case errors.Is(err, service.ErrTouristNotFound):

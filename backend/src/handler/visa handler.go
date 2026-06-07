@@ -25,7 +25,7 @@ func (h *VisaHandler) Create(c echo.Context) error {
 
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "invalid request body",
+			"error": "Некорректное тело запроса",
 		})
 	}
 
@@ -41,7 +41,7 @@ func (h *VisaHandler) GetByID(c echo.Context) error {
 	id, err := parseIDParam(c, "id")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "invalid id",
+			"error": "Некорректный id",
 		})
 	}
 
@@ -69,7 +69,7 @@ func (h *VisaHandler) Update(c echo.Context) error {
 	id, err := parseIDParam(c, "id")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "invalid id",
+			"error": "Некорректный id",
 		})
 	}
 
@@ -77,7 +77,7 @@ func (h *VisaHandler) Update(c echo.Context) error {
 
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "invalid request body",
+			"error": "Некорректное тело запроса",
 		})
 	}
 
@@ -93,7 +93,7 @@ func (h *VisaHandler) Delete(c echo.Context) error {
 	id, err := parseIDParam(c, "id")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "invalid id",
+			"error": "Некорректный id",
 		})
 	}
 
@@ -108,67 +108,67 @@ func (h *VisaHandler) writeVisaError(c echo.Context, err error) error {
 	switch {
 	case errors.Is(err, service.ErrVisaNotFound):
 		return c.JSON(http.StatusNotFound, map[string]string{
-			"error": "visa not found",
+			"error": "Виза не найдена",
 		})
 
 	case errors.Is(err, service.ErrVisaInvalidNumber):
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "number is required",
+			"error": "Укажите номер визы",
 		})
 
 	case errors.Is(err, service.ErrVisaInvalidDestinationCountry):
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "destination_country is required",
+			"error": "Укажите страну назначения",
 		})
 
 	case errors.Is(err, service.ErrVisaInvalidStatus):
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "status must be draft, submitted, rejected, issued, cancelled or expired",
+			"error": "Статус визы должен быть draft, submitted, approved, rejected, issued, cancelled или expired",
 		})
 
 	case errors.Is(err, service.ErrVisaInvalidTouristID):
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "tourist_id must be positive",
+			"error": "Выберите туриста",
 		})
 
 	case errors.Is(err, service.ErrVisaInvalidSubmittedAt):
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "submitted_at must be RFC3339 datetime",
+			"error": "Дата подачи должна быть корректной датой и временем",
 		})
 
 	case errors.Is(err, service.ErrVisaInvalidDecisionAt):
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "decision_at must be RFC3339 datetime",
+			"error": "Дата решения должна быть корректной датой и временем",
 		})
 
 	case errors.Is(err, service.ErrVisaInvalidIssuedAt):
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "issued_at must be RFC3339 datetime",
+			"error": "Дата выдачи визы должна быть корректной датой и временем",
 		})
 
 	case errors.Is(err, service.ErrVisaInvalidValidFrom):
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "valid_from must be YYYY-MM-DD date",
+			"error": "Дата начала действия визы должна быть в формате YYYY-MM-DD",
 		})
 
 	case errors.Is(err, service.ErrVisaInvalidValidUntil):
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "valid_until must be YYYY-MM-DD date",
+			"error": "Дата окончания действия визы должна быть в формате YYYY-MM-DD",
 		})
 
 	case errors.Is(err, service.ErrVisaInvalidTiming):
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "visa timestamps are inconsistent",
+			"error": "Даты визы указаны в неправильном порядке",
 		})
 
 	case errors.Is(err, service.ErrVisaInvalidValidityPeriod):
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "valid_from must be before valid_until",
+			"error": "Дата окончания действия визы должна быть позже даты начала",
 		})
 
 	case errors.Is(err, service.ErrVisaIssuedFieldsRequired):
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "issued visa requires number, issued_at, valid_from and valid_until",
+			"error": "Для выданной визы нужны номер, дата выдачи, начало и окончание действия",
 		})
 
 	default:

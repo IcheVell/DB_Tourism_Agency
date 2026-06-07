@@ -1,15 +1,48 @@
+export type ReportParamType = 'text' | 'number' | 'date' | 'select';
+
+export interface ReportSelectOption {
+  label: string;
+  value: string | number;
+}
+
+export interface ReportSelectConfig {
+  endpoint?: string;
+  valueField?: string;
+  labelFields?: string[];
+  staticOptions?: ReportSelectOption[];
+}
+
+export interface ReportParamConfig {
+  name: string;
+  label: string;
+  type: ReportParamType;
+  required?: boolean;
+  select?: ReportSelectConfig;
+}
+
 export interface ReportConfig {
   key: string;
   title: string;
   path: string;
   permission: string;
-  params: Array<{
-    name: string;
-    label: string;
-    type: 'text' | 'number' | 'date';
-    required?: boolean;
-  }>;
+  params: ReportParamConfig[];
 }
+
+const relation = (
+  endpoint: string,
+  labelFields: string[],
+  valueField = 'id',
+): ReportSelectConfig => ({
+  endpoint,
+  valueField,
+  labelFields,
+});
+
+const touristCategorySelect = relation('/api/v1/tourist-categories', ['name']);
+const hotelSelect = relation('/api/v1/hotels', ['name', 'address']);
+const touristSelect = relation('/api/v1/tourists', ['last_name', 'first_name', 'middle_name', 'id']);
+const flightSelect = relation('/api/v1/flights', ['flight_number', 'flight_date']);
+const groupSelect = relation('/api/v1/tourist-groups', ['name', 'arrival_date', 'departure_date']);
 
 export const reportConfigs: ReportConfig[] = [
   {
@@ -17,7 +50,14 @@ export const reportConfigs: ReportConfig[] = [
     title: 'Список туристов для таможни',
     path: '/api/v1/reports/customs-tourists',
     permission: 'reports.customs_list.read',
-    params: [{ name: 'category_id', label: 'ID категории', type: 'number' }],
+    params: [
+      {
+        name: 'category_id',
+        label: 'Категория туриста',
+        type: 'select',
+        select: touristCategorySelect,
+      },
+    ],
   },
   {
     key: 'accommodation-list',
@@ -25,8 +65,18 @@ export const reportConfigs: ReportConfig[] = [
     path: '/api/v1/reports/accommodation-list',
     permission: 'reports.accommodation.read',
     params: [
-      { name: 'hotel_id', label: 'ID гостиницы', type: 'number' },
-      { name: 'category_id', label: 'ID категории', type: 'number' },
+      {
+        name: 'hotel_id',
+        label: 'Гостиница',
+        type: 'select',
+        select: hotelSelect,
+      },
+      {
+        name: 'category_id',
+        label: 'Категория туриста',
+        type: 'select',
+        select: touristCategorySelect,
+      },
     ],
   },
   {
@@ -37,7 +87,12 @@ export const reportConfigs: ReportConfig[] = [
     params: [
       { name: 'from', label: 'Дата с', type: 'date' },
       { name: 'to', label: 'Дата по', type: 'date' },
-      { name: 'category_id', label: 'ID категории', type: 'number' },
+      {
+        name: 'category_id',
+        label: 'Категория туриста',
+        type: 'select',
+        select: touristCategorySelect,
+      },
     ],
   },
   {
@@ -45,7 +100,15 @@ export const reportConfigs: ReportConfig[] = [
     title: 'Сведения о туристе',
     path: '/api/v1/reports/tourist-info',
     permission: 'reports.tourist_info.read',
-    params: [{ name: 'tourist_id', label: 'ID туриста', type: 'number', required: true }],
+    params: [
+      {
+        name: 'tourist_id',
+        label: 'Турист',
+        type: 'select',
+        required: true,
+        select: touristSelect,
+      },
+    ],
   },
   {
     key: 'hotel-occupancy',
@@ -82,7 +145,15 @@ export const reportConfigs: ReportConfig[] = [
     title: 'Загрузка рейса',
     path: '/api/v1/reports/flight-load',
     permission: 'reports.flight_load.read',
-    params: [{ name: 'flight_id', label: 'ID рейса', type: 'number', required: true }],
+    params: [
+      {
+        name: 'flight_id',
+        label: 'Рейс',
+        type: 'select',
+        required: true,
+        select: flightSelect,
+      },
+    ],
   },
   {
     key: 'warehouse-turnover',
@@ -100,8 +171,19 @@ export const reportConfigs: ReportConfig[] = [
     path: '/api/v1/reports/group-financial-report',
     permission: 'reports.financial.read',
     params: [
-      { name: 'group_id', label: 'ID группы', type: 'number', required: true },
-      { name: 'category_id', label: 'ID категории', type: 'number' },
+      {
+        name: 'group_id',
+        label: 'Туристическая группа',
+        type: 'select',
+        required: true,
+        select: groupSelect,
+      },
+      {
+        name: 'category_id',
+        label: 'Категория туриста',
+        type: 'select',
+        select: touristCategorySelect,
+      },
     ],
   },
   {
@@ -142,8 +224,20 @@ export const reportConfigs: ReportConfig[] = [
     params: [
       { name: 'from', label: 'Дата с', type: 'date' },
       { name: 'to', label: 'Дата по', type: 'date' },
-      { name: 'rest_category_id', label: 'ID категории отдыхающих', type: 'number', required: true },
-      { name: 'shop_category_id', label: 'ID категории shop-туристов', type: 'number', required: true },
+      {
+        name: 'rest_category_id',
+        label: 'Категория отдыхающих',
+        type: 'select',
+        required: true,
+        select: touristCategorySelect,
+      },
+      {
+        name: 'shop_category_id',
+        label: 'Категория shop-туристов',
+        type: 'select',
+        required: true,
+        select: touristCategorySelect,
+      },
     ],
   },
   {
@@ -151,6 +245,14 @@ export const reportConfigs: ReportConfig[] = [
     title: 'Туристы указанного рейса',
     path: '/api/v1/reports/flight-tourists',
     permission: 'reports.flight_load.read',
-    params: [{ name: 'flight_id', label: 'ID рейса', type: 'number', required: true }],
+    params: [
+      {
+        name: 'flight_id',
+        label: 'Рейс',
+        type: 'select',
+        required: true,
+        select: flightSelect,
+      },
+    ],
   },
 ];
